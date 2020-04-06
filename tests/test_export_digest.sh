@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-docker build -t workerbee workerbee
+docker build -t workerbee:test ../workerbee
 
 docker run -it --rm \
     -e CASSANDRA_HOST=beehive-data.cels.anl.gov \
@@ -8,7 +8,7 @@ docker run -it --rm \
     -v $PWD/plugins:/storage/plugins:ro \
     -v $PWD/datasets:/storage/datasets \
     -v $PWD/digests:/storage/digests \
-    workerbee \
+    workerbee:test \
     bash update-digests.sh
 
 #find /home/sshahkarami/datasets/ -name '*.csv.gz' | xargs -L1 gzip -dc | head -n 100
