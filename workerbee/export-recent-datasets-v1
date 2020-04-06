@@ -1,0 +1,292 @@
+#!/usr/bin/env python3
+# ANL:waggle-license
+#  This file is part of the Waggle Platform.  Please see the file
+#  LICENSE.waggle.txt for the legal details of the copyright and software
+#  license.  For more details on the Waggle project, visit:
+#           http://www.wa8.gl
+# ANL:waggle-license
+import argparse
+from cassandra.cluster import Cluster
+import os
+import logging
+import csv
+import time
+import sys
+import datetime
+from waggle.protocol.v3 import unpack_sensors as unpack_sensors_v3
+from waggle.protocol.v5 import unpack_sensors as unpack_sensors_v5
+from waggle.protocol.v5.encoder import encode_frame as encode_frame_v5
+from io import StringIO
+import multiprocessing
+import gzip
+from contextlib import contextmanager
+
+CASSANDRA_HOST = os.environ['CASSANDRA_HOST'].split()
+
+
+@contextmanager
+def timed(*args):
+    context_start_time = time.time()
+    yield
+    context_end_time = time.time()
+    print(*args, context_end_time - context_start_time)
+
+
+# TODO clean up this hack to get recent timestamp filtering in
+since = None
+
+
+alphasense_histogram_id = 0x28
+
+
+def unpack_alphasense_v1(data):
+    frame = {alphasense_histogram_id: [bytes.fromhex(data)]}
+    return unpack_sensors_v5(encode_frame_v5(frame))
+
+
+decoders = {
+    ('coresense', '3'): unpack_sensors_v3,
+    ('coresense', '4'): unpack_sensors_v5,
+    ('status', '0'): unpack_sensors_v5,
+    ('image_example', '0'): unpack_sensors_v5,
+    ('spl', '0'): unpack_sensors_v5,
+    ('d3s', '0'): unpack_sensors_v5,
+    ('alphasense', '1'): unpack_alphasense_v1,
+}
+
+
+def normalize_ascii_data(data):
+    if data.startswith("b'"):
+        data = data[2:]
+    if data.endswith("'"):
+        data = data[:-1]
+    return data
+
+
+def normalize_bin_data(data):
+    data = data[data.index(0xaa):]
+    data = data[:data.rindex(0x55)+1]
+    return data
+
+
+def decode_row(row):
+    # HACK special support for old alphasense plugin
+    if row.plugin_name == 'alphasense':
+        return unpack_alphasense_v1(row.data)
+
+    plugin = (row.plugin_name, row.plugin_version)
+
+    if plugin not in decoders:
+        return []
+
+    data = normalize_bin_data(bytes.fromhex(normalize_ascii_data(row.data)))
+    return decoders[plugin](data)
+
+
+def stringify(x):
+    if x is None:
+        return 'NA'
+    if isinstance(x, tuple) or isinstance(x, list):
+        return ','.join(map(stringify, x))
+    if isinstance(x, bytes) or isinstance(x, bytearray):
+        return x.hex()
+    if isinstance(x, float):
+        return str(round(x, 5))
+    if isinstance(x, bool):
+        return str(int(x))
+    return str(x)
+
+
+def decode_rows(node_id, date, results, writer):
+    for row in results:
+        try:
+            samples = decode_row(row)
+        except KeyboardInterrupt:
+            raise
+        except Exception:
+            logger.exception(
+                'failed to decode {} {} {}'.format(node_id, date, row))
+            continue
+
+        for sample in samples:
+            if sample.timestamp == 0:
+                timestamp = row.timestamp.strftime('%Y/%m/%d %H:%M:%S')
+            else:
+                timestamp = sample.timestamp
+
+            if sample.value_raw is None and sample.value_hrf is None:
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            if not timestamp.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            if not node_id.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            if not sample.subsystem.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            if not sample.sensor.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            if not sample.parameter.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            raw_string = stringify(sample.value_raw)
+
+            if not raw_string.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            hrf_string = stringify(sample.value_hrf)
+
+            if not hrf_string.isprintable():
+                logger.warning('invalid sample - %r', sample)
+                continue
+
+            writer.writerow([
+                timestamp,
+                node_id,
+                sample.subsystem,
+                sample.sensor,
+                sample.parameter,
+                stringify(sample.value_raw),
+                stringify(sample.value_hrf),
+            ])
+
+
+def make_jobs(lines):
+    jobs = {}
+
+    for line in lines:
+        key = tuple(line.split())
+
+        if len(key) != 2:
+            continue
+
+        node_id = key[0][-12:].lower()
+        date = key[1]
+
+        if not node_id:
+            continue
+
+        if not node_id.isprintable():
+            continue
+
+        if not date.isprintable():
+            continue
+
+        index = (node_id, date)
+
+        if index not in jobs:
+            jobs[index] = []
+
+        jobs[index].append(key)
+
+    return list(jobs.items())
+
+
+def init_worker(cluster, debug):
+    global logger
+    global session
+    global worker_start_time
+    global worker_completed
+
+    if debug:
+        logging.basicConfig(level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.CRITICAL)
+
+    logger = multiprocessing.log_to_stderr()
+
+    session = cluster.connect('waggle')
+    print('init', session)
+
+    worker_start_time = time.time()
+    worker_completed = 0
+
+
+def process_job(job):
+    global logger
+    global session
+    global worker_start_time
+    global worker_completed
+
+    (node_id, date), partition_keys = job
+
+    target = os.path.join(datasets_dir, node_id, date + '.csv.gz')
+    print('make', target)
+
+    start = time.time()
+
+    write_buffer = StringIO()
+    writer = csv.writer(write_buffer)
+    writer.writerow([
+        'timestamp',
+        'node_id',
+        'subsystem',
+        'sensor',
+        'parameter',
+        'value_raw',
+        'value_hrf',
+    ])
+
+    if since is None:
+        query = "SELECT timestamp, plugin_name, plugin_version, parameter, data FROM sensor_data_raw WHERE node_id=%s AND date=%s"
+
+        for partition_key in partition_keys:
+            results = session.execute(query, partition_key)
+            decode_rows(node_id, date, results, writer)
+    else:
+        query = "SELECT timestamp, plugin_name, plugin_version, parameter, data FROM sensor_data_raw WHERE node_id=%s AND date=%s AND plugin_name=%s and plugin_version=%s and plugin_instance='0' and timestamp >= %s"
+
+        for plugin_name, plugin_version in decoders.keys():
+            for partition_key in partition_keys:
+                results = session.execute(
+                    query, partition_key + (plugin_name, plugin_version, since))
+                decode_rows(node_id, date, results, writer)
+
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    data = gzip.compress(write_buffer.getvalue().encode())
+
+    with open(target, 'wb') as file:
+        file.write(data)
+
+    worker_completed += 1
+    worker_rate = round(worker_completed /
+                        (time.time() - worker_start_time), 3)
+
+    print('done', target, round(time.time() - start, 3),
+          's', worker_rate, 'datasets/s')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-D', '--debug', action='store_true',
+                        help='Enable debug mode.')
+    parser.add_argument('-p', '--processes', type=int, default=1)
+    parser.add_argument('--since', type=int)
+    parser.add_argument(
+        'datasets_dir', help='Directory where datasets will be exported.')
+    args = parser.parse_args()
+
+    if args.since is not None:
+        now = datetime.datetime.utcnow()
+        since = now - datetime.timedelta(seconds=args.since)
+
+    datasets_dir = os.path.abspath(args.datasets_dir)
+    os.makedirs(datasets_dir, exist_ok=True)
+
+    jobs = make_jobs(sys.stdin.readlines())
+
+    cluster = Cluster(CASSANDRA_HOST)
+
+    with timed('export_datasets'):
+        with multiprocessing.Pool(processes=args.processes, initializer=init_worker, initargs=(cluster, args.debug)) as pool:
+            pool.map(process_job, jobs)

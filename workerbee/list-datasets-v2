@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+# ANL:waggle-license
+#  This file is part of the Waggle Platform.  Please see the file
+#  LICENSE.waggle.txt for the legal details of the copyright and software
+#  license.  For more details on the Waggle project, visit:
+#           http://www.wa8.gl
+# ANL:waggle-license
+from cassandra.cluster import Cluster
+import os
+
+CASSANDRA_HOST = os.environ['CASSANDRA_HOST'].split()
+
+cluster = Cluster(CASSANDRA_HOST)
+session = cluster.connect('waggle')
+
+results = session.execute(
+    'SELECT DISTINCT node_id, date FROM data_messages_v2')
+
+for row in results:
+    if not row.node_id:
+        continue
+    if not row.date:
+        continue
+    print(row.node_id, row.date, flush=True)

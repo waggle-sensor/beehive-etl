@@ -1,0 +1,5 @@
+cassandra-driver
+numpy
+pandas
+jinja2
+git+https://github.com/waggle-sensor/pywaggle
