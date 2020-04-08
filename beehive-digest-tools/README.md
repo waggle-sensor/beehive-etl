@@ -42,5 +42,5 @@ This is similar to the full export digests, but will only export data from last 
 * The beehive plugin system is rough. Basically, the v2 exporter finds all plugins matching `*.plugin/plugin_bin/plugin_beehive`, pipes waggle protocol data through each one, and receives CSV format data. This was never clearly designed and should be consider a hack for now.
 * There is no management of plugin IDs right now. It's all just chosen by plugin developer.
 * Management of project and plugin directories must be done. These are currently only managed on Github at:
-** [https://github.com/waggle-sensor/beehive-server/tree/master/publishing-tools/projects](https://github.com/waggle-sensor/beehive-server/tree/master/publishing-tools/projects)
-** [https://github.com/waggle-sensor/plugin_manager/tree/master/plugins](https://github.com/waggle-sensor/plugin_manager/tree/master/plugins)
+  * [https://github.com/waggle-sensor/beehive-server/tree/master/publishing-tools/projects](https://github.com/waggle-sensor/beehive-server/tree/master/publishing-tools/projects)
+  * [https://github.com/waggle-sensor/plugin_manager/tree/master/plugins](https://github.com/waggle-sensor/plugin_manager/tree/master/plugins)
