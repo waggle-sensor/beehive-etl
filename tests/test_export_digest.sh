@@ -10,5 +10,3 @@ docker run -it --rm \
     -v $PWD/digests:/storage/digests \
     workerbee:test \
     bash update-digests.sh
-
-#find /home/sshahkarami/datasets/ -name '*.csv.gz' | xargs -L1 gzip -dc | head -n 100
