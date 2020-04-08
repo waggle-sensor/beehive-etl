@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-docker build -t workerbee:test ../workerbee
+docker build -t beehive-digest-tools:test ../beehive-digest-tools
 
 docker run -it --rm \
     -e CASSANDRA_HOST=beehive-data.cels.anl.gov \
@@ -8,5 +8,5 @@ docker run -it --rm \
     -v $PWD/plugins:/storage/plugins:ro \
     -v $PWD/datasets:/storage/datasets \
     -v $PWD/digests:/storage/digests \
-    workerbee:test \
+    beehive-digest-tools:test \
     bash update-digests.sh
