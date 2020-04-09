@@ -3,6 +3,8 @@
 WINDOW=1800 # 30min
 
 function compile() {
+  echo "exporting recent digests from ${CASSANDRA_HOST}"
+
   mkdir -p /storage/datasets/v1 /storage/datasets/v2 /storage/plugins
   rm -rf /storage/datasets/v1/* /storage/datasets/v2/* /storage/digests/*
 
@@ -21,6 +23,7 @@ function compile() {
 
 function upload() {
   target='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
+  echo "uploading recent digests to ${target}"
 
   for p in $(ls /storage/digests); do
     echo "upload $p - start"
@@ -39,6 +42,5 @@ function upload() {
   done
 }
 
-echo "exporting rececnt digests from ${CASSANDRA_HOST}"
 compile
-# upload
+upload
