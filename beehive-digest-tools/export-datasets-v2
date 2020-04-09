@@ -162,7 +162,9 @@ for node_id_key, node_id, date in jobs:
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    with open(path, 'wb') as file:
+    with open(path + '.tmp', 'wb') as file:
         file.write(gzip.compress(buf.getvalue().encode()))
+
+    os.rename(path + '.tmp', path)
 
     logging.info('Done dataset %s %s.', node_id, date)

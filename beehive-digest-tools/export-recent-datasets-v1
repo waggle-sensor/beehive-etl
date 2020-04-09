@@ -255,8 +255,10 @@ def process_job(job):
     os.makedirs(os.path.dirname(target), exist_ok=True)
     data = gzip.compress(write_buffer.getvalue().encode())
 
-    with open(target, 'wb') as file:
+    with open(target + '.tmp', 'wb') as file:
         file.write(data)
+
+    os.rename(target + '.tmp', target)
 
     worker_completed += 1
     worker_rate = round(worker_completed /
