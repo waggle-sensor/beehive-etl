@@ -4,6 +4,7 @@ WINDOW=1800 # 30min
 
 function compile() {
   mkdir -p /storage/datasets/v1 /storage/datasets/v2 /storage/plugins
+  rm -rf /storage/datasets/v1/* /storage/datasets/v2/* /storage/digests/*
 
   python list-datasets-v1 | python filter-last-day | python export-recent-datasets-v1 --since $WINDOW -p 8 /storage/datasets/v1
 
@@ -21,14 +22,14 @@ function compile() {
 function upload() {
   target='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
 
-  for p in $(ls $DIGESTS_DIR); do
+  for p in $(ls /storage/digests); do
     echo "upload $p - start"
-    gzip -c -d $DIGESTS_DIR/$p/data.csv.gz > $DIGESTS_DIR/$p/data.csv
-    src=$DIGESTS_DIR/$p/data.csv
+    gzip -c -d /storage/digests/$p/data.csv.gz > /storage/digests/$p/data.csv
+    src=/storage/digests/$p/data.csv
     dst=$target/$p.recent.csv
     scp $src $dst
 
-    src=$DIGESTS_DIR/$p/$p.latest.tar
+    src=/storage/digests/$p/$p.latest.tar
     dst=$target/$p.recent.tar
     if scp $src $dst; then
       echo "upload $p - done"
