@@ -29,7 +29,7 @@ function upload() {
     project=$(basename $projectdir)
     echo "upload $project - start"
 
-    gzip -c -d "$projectdir/data.csv.gz" > "$projectdir/data.csv"
+    gzip -c -d "$projectdir/*/data.csv.gz" > "$projectdir/data.csv"
     src="$projectdir/data.csv"
     dst=$target/$project.recent.csv
     scp $src $dst
