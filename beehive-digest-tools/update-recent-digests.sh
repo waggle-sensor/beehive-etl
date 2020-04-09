@@ -15,9 +15,10 @@ function compile() {
   python list-keys-v2 --end today --periods 2 | python export-recent-datasets-v2 --since $WINDOW /storage/datasets/v2 $PWD/sdf.csv /storage/plugins/*.plugin
 
   # For now, we're only supporting complete digests. AoT_Chicago.public was the only example and was no used AFAIK.
-  for p in $(ls /storage/projects | grep .complete); do
-    echo "compile $p -- complete"
-    ./compile-digest-v2 --no-cleanup --complete --data /storage/datasets/v1 --data /storage/datasets/v2 /storage/digests /storage/projects/$p
+  for projectpath in /storage/projects/*.complete; do
+    project=$(basename $projectpath)
+    echo "compile $project -- complete"
+    ./compile-digest-v2 --no-cleanup --complete --data /storage/datasets/v1 --data /storage/datasets/v2 /storage/digests "/storage/projects/$project"
   done
 }
 
