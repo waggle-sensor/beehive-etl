@@ -9,4 +9,4 @@ docker run -it --rm \
     -v $PWD/datasets:/storage/datasets \
     -v $PWD/digests:/storage/digests \
     beehive-digest-tools:test \
-    bash list-keys-v1 --end today --periods 3
+    python list-keys-v1 --end today --periods 3
