@@ -27,4 +27,4 @@ dates = set(pd.date_range(start=args.start,
 for node in nodes:
     for date in dates:
         node = node.rjust(16, '0')
-        print(node, date)
+        print(node, date, flush=True)
