@@ -3,7 +3,6 @@
 REMOTE='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
 
 mkdir -p /storage/datasets/v1 /storage/datasets/v2 /storage/plugins
-rm -rf /storage/datasets/v1/* /storage/datasets/v2/* /storage/digests/*
 
 echo "exporting v1 digests from ${CASSANDRA_HOST}"
 python list-keys-v1 --end today --periods 3 | python export-datasets-v1 -p 8 /storage/datasets/v1
