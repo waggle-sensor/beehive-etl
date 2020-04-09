@@ -35,7 +35,7 @@ docker run -it --rm \
 
 This is similar to the full export digests, but will only export data from last 30min. Note that this process doesn't need any data volumes as it's data is ephemeral.
 
-## Bulk (Re)Export Dataset
+## Bulk (Re)Export Datasets
 
 ```sh
 docker run -it --rm \
