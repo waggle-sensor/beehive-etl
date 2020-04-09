@@ -26,8 +26,8 @@ function upload() {
   echo "uploading recent digests to ${target}"
 
   for projectpath in /storage/projects/*.complete; do
-    project=$(dirname $projectpath)
-    echo "uploading $project @ $projectdir"
+    project=$(basename $projectpath)
+    echo "uploading $project @ $projectpath"
     gzip -c -d /storage/digests/$project.latest/*/data.csv.gz > "/storage/digests/$project.latest.csv"
     scp "/storage/digests/$project.latest.csv" "$target/$project.recent.csv"
     scp "/storage/digests/$project.latest.tar" "$target/$project.recent.tar"
