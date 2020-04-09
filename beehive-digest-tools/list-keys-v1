@@ -15,7 +15,8 @@ parser.add_argument('--end')
 parser.add_argument('--periods', type=int)
 args = parser.parse_args()
 
-df = pd.concat(pd.read_csv(path)
+dtype = {'node_id': str}
+df = pd.concat(pd.read_csv(path, dtype=dtype)
                for path in glob('/storage/projects/*/nodes.csv'))
 
 nodes = set(df.node_id)
