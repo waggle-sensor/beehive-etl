@@ -25,19 +25,21 @@ function upload() {
   target='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
   echo "uploading recent digests to ${target}"
 
-  for p in $(ls /storage/digests); do
-    echo "upload $p - start"
-    gzip -c -d /storage/digests/$p/data.csv.gz > /storage/digests/$p/data.csv
-    src=/storage/digests/$p/data.csv
-    dst=$target/$p.recent.csv
+  for projectdir in /storage/digests/*.latest; do
+    project=$(basename $projectdir)
+    echo "upload $project - start"
+
+    gzip -c -d "$projectdir/data.csv.gz" > "$projectdir/data.csv"
+    src="$projectdir/data.csv"
+    dst=$target/$project.recent.csv
     scp $src $dst
 
-    src=/storage/digests/$p/$p.latest.tar
-    dst=$target/$p.recent.tar
+    src="$projectdir/$project.latest.tar"
+    dst="$target/$project.recent.tar"
     if scp $src $dst; then
-      echo "upload $p - done"
+      echo "upload $project - done"
     else
-      echo "upload $p - error"
+      echo "upload $project - error"
     fi
   done
 }
