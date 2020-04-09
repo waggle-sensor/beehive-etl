@@ -3,7 +3,7 @@
 REMOTE='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
 
 echo "exporting v1 digests from ${CASSANDRA_HOST}"
-python list-keys-v1 --end today --periods 3 | python export-datasets-v1 -p 8 /storage/datasets/v1
+python list-keys-v1 --end today --periods 3 | python export-datasets-v1 /storage/datasets/v1
 
 # TODO figure out how to handle sdf / beehive plugins
 # TODO look into what the -p support is
