@@ -7,6 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-COPY ssh-config /root/.ssh/config
+COPY ssh/ /root/.ssh/
 
 CMD [ "bash", "./update-digests.sh" ]
