@@ -12,7 +12,7 @@ docker run -it --rm \
     -v $PWD/plugins:/storage/plugins:ro \
     -v $PWD/datasets:/storage/datasets \
     -v $PWD/digests:/storage/digests \
-    beehive-digest-tools:test \
+    beehive-digest-tools \
     bash update-digests.sh
 ```
 
@@ -29,7 +29,7 @@ docker run -it --rm \
     -v /root/.ssh/waggle_id_rsa:/run/secrets/ssh-key:ro \
     -v $PWD/projects:/storage/projects:ro \
     -v $PWD/plugins:/storage/plugins:ro \
-    beehive-digest-tools:test \
+    beehive-digest-tools \
     bash update-recent-digests.sh
 ```
 
@@ -63,3 +63,4 @@ This will export the dataset CSVs in the specified time range. The range is spec
 * Management of project and plugin directories must be done. These are currently only managed on Github at:
   * [https://github.com/waggle-sensor/beehive-server/tree/master/publishing-tools/projects](https://github.com/waggle-sensor/beehive-server/tree/master/publishing-tools/projects)
   * [https://github.com/waggle-sensor/plugin_manager/tree/master/plugins](https://github.com/waggle-sensor/plugin_manager/tree/master/plugins)
+* Still working on cleaning up SSH config. Please see `ssh/config` and `ssh/known_hosts` if you need to update the remote host.
