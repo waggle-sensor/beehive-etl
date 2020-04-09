@@ -9,7 +9,7 @@ if [ -z "$*" ]; then
 fi
 
 echo "exporting v1 digests from ${CASSANDRA_HOST}"
-python list-keys-v1 $* | python export-datasets-v1 -p 8 /storage/datasets/v1
+python list-keys-v1 $* | python export-datasets-v1 /storage/datasets/v1
 
 # TODO figure out how to handle sdf / beehive plugins
 # TODO look into what the -p support is
