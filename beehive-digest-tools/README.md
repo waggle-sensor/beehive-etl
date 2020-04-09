@@ -7,6 +7,7 @@ This container bundles tools used to create sensor data digests from beehive.
 ```sh
 docker run -it --rm \
     -e CASSANDRA_HOST=beehive-data.cels.anl.gov \
+    -v /root/.ssh/waggle_id_rsa:/run/secrets/ssh-key:ro \
     -v $PWD/projects:/storage/projects:ro \
     -v $PWD/plugins:/storage/plugins:ro \
     -v $PWD/datasets:/storage/datasets \
@@ -25,15 +26,33 @@ This command does the following:
 ```sh
 docker run -it --rm \
     -e CASSANDRA_HOST=beehive-data.cels.anl.gov \
+    -v /root/.ssh/waggle_id_rsa:/run/secrets/ssh-key:ro \
     -v $PWD/projects:/storage/projects:ro \
     -v $PWD/plugins:/storage/plugins:ro \
-    -v $PWD/recent_datasets:/storage/datasets \
-    -v $PWD/recent_digests:/storage/digests \
     beehive-digest-tools:test \
     bash update-recent-digests.sh
 ```
 
-This is similar to the full export digests, but will only export data from last 30min.
+This is similar to the full export digests, but will only export data from last 30min. Note that this process doesn't need any data volumes as it's data is ephemeral.
+
+## Bulk (Re)Export
+
+```sh
+docker run -it --rm \
+    -e CASSANDRA_HOST=beehive-data.cels.anl.gov \
+    -v $PWD/projects:/storage/projects:ro \
+    -v $PWD/plugins:/storage/plugins:ro \
+    -v /storage/datasets/:/storage/datasets/ \
+    -v /storage/digests/:/storage/digests/ \
+    beehive-digest-tools \
+    bash bulk-export-datasets.sh --start 2018-01-01 --end today
+```
+
+This will export the dataset CSVs in the specified time range. The range is specified by providing two of the three arguments:
+
+* `--start`: start date as YYYY-MM-DD or today
+* `--end`: end date as YYYY-MM-DD or today
+* `--periods`: number of dates
 
 ## Important Notes
 
