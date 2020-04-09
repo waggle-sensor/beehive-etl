@@ -15,6 +15,6 @@ for projectpath in /storage/projects/*.complete; do
   project=$(basename $projectpath)
   echo "compile $project -- complete"
   ./compile-digest-v2 --no-cleanup --complete --data /storage/datasets/v1 --data /storage/datasets/v2 /storage/digests "/storage/projects/$project"
-  # echo "uploading $project"
-  # scp "/storage/digests/$project.latest.tar" "$REMOTE/$project.latest.tar"
+  echo "uploading $project"
+  scp "/storage/digests/$project.latest.tar" "$REMOTE/$project.latest.tar"
 done
