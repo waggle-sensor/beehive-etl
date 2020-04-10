@@ -14,7 +14,7 @@ python list-keys-v2 --end today --periods 3 | python export-datasets-v2 /storage
 for projectpath in /storage/projects/*.complete; do
   project=$(basename $projectpath)
   echo "compile $project -- complete"
-  ./compile-digest-v2 --complete --data /storage/datasets/v1 --data /storage/datasets/v2 /storage/digests "/storage/projects/$project"
+  ./compile-digest-v2 --complete --data /storage/datasets/v1 --data /storage/datasets/v2 "/storage/digests/$project/" "/storage/projects/$project/"
   echo "uploading $project"
   scp "/storage/digests/$project.latest.tar" "$REMOTE/$project.latest.tar"
 done
