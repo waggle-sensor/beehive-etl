@@ -1,5 +1,7 @@
 FROM python:3
 
+RUN apt-get update && apt-get install -y rsync
+
 WORKDIR /usr/src/app
 
 COPY requirements.txt ./
