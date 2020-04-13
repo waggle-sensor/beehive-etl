@@ -25,7 +25,7 @@ for projectpath in /storage/projects/*.complete; do
   mv "/storage/digests/$project/data.csv" "/storage/digests/$project/$project.recent.csv"
   mv "/storage/digests/$project/$project.latest.tar" "/storage/digests/$project/$project.recent.tar"
   # upload files
-  rsync -av --stats --partial-dir='.partial/' \
+  rsync -av --stats --partial-dir='.partial-recent/' \
     "/storage/digests/$project/$project.recent.csv" \
     "/storage/digests/$project/$project.recent.tar" \
     'aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets/'
