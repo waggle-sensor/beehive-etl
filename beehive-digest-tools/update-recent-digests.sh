@@ -21,6 +21,6 @@ for projectpath in /storage/projects/*.complete; do
   ./compile-digest-v2 --no-cleanup --complete --data /storage/datasets/v1 --data /storage/datasets/v2 "/storage/digests/$project/" "/storage/projects/$project"
   echo "uploading $project"
   gzip -d "/storage/digests/$project/data.csv.gz"
-  scp "/storage/digests/$project/data.csv" "$REMOTE/$project.recent.csv"
-  scp "/storage/digests/$project/$project.latest.tar" "$REMOTE/$project.recent.tar"
+  rsync -av "/storage/digests/$project/data.csv" "$REMOTE/$project.recent.csv"
+  rsync -av --stats "/storage/digests/$project/$project.latest.tar" "$REMOTE/$project.recent.tar"
 done

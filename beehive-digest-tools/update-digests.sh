@@ -16,5 +16,5 @@ for projectpath in /storage/projects/*.complete; do
   echo "compile $project -- complete"
   ./compile-digest-v2 --complete --data /storage/datasets/v1 --data /storage/datasets/v2 "/storage/digests/$project/" "/storage/projects/$project"
   echo "uploading $project"
-  scp "/storage/digests/$project/$project.latest.tar" "$REMOTE/$project.latest.tar"
+  rsync -av --stats "/storage/digests/$project/$project.latest.tar" "$REMOTE/$project.latest.tar"
 done
