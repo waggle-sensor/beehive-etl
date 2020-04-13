@@ -1,7 +1,5 @@
 #!/bin/bash
 
-REMOTE='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
-
 echo "exporting v1 digests from ${CASSANDRA_HOST}"
 python list-keys-v1 --end today --periods 3 | python export-datasets-v1 /storage/datasets/v1
 
@@ -16,5 +14,7 @@ for projectpath in /storage/projects/*.complete; do
   echo "compile $project -- complete"
   ./compile-digest-v2 --complete --data /storage/datasets/v1 --data /storage/datasets/v2 "/storage/digests/$project/" "/storage/projects/$project"
   echo "uploading $project"
-  rsync -av --stats "/storage/digests/$project/$project.latest.tar" "$REMOTE/$project.latest.tar"
+  rsync -av --stats --partial-dir='./partial/' \
+    "/storage/digests/$project/$project.latest.tar" \
+    'aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets/'
 done

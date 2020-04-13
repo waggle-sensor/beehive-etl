@@ -1,7 +1,6 @@
 #!/bin/bash
 
 WINDOW=1800 # 30min
-REMOTE='aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets'
 
 mkdir -p /storage/datasets/v1 /storage/datasets/v2 /storage/plugins
 rm -rf /storage/datasets/v1/* /storage/datasets/v2/* /storage/digests/*
@@ -21,6 +20,13 @@ for projectpath in /storage/projects/*.complete; do
   ./compile-digest-v2 --no-cleanup --complete --data /storage/datasets/v1 --data /storage/datasets/v2 "/storage/digests/$project/" "/storage/projects/$project"
   echo "uploading $project"
   gzip -d "/storage/digests/$project/data.csv.gz"
-  rsync -av "/storage/digests/$project/data.csv" "$REMOTE/$project.recent.csv"
-  rsync -av --stats "/storage/digests/$project/$project.latest.tar" "$REMOTE/$project.recent.tar"
+
+  # rename files for remote
+  mv "/storage/digests/$project/data.csv" "/storage/digests/$project/$project.recent.csv"
+  mv "/storage/digests/$project/$project.latest.tar" "/storage/digests/$project/$project.recent.tar"
+  # upload files
+  rsync -av --stats --partial-dir='./partial/' \
+    "/storage/digests/$project/$project.recent.csv" \
+    "/storage/digests/$project/$project.recent.tar" \
+    'aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets/'
 done
