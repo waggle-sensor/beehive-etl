@@ -13,8 +13,16 @@ for projectpath in /storage/projects/*.complete; do
   project=$(basename $projectpath)
   echo "compile $project -- complete"
   ./compile-digest-v2 --complete --data /storage/datasets/v1 --data /storage/datasets/v2 "/storage/digests/$project/" "/storage/projects/$project"
-  echo "uploading $project"
-  rsync -av --stats --partial-dir='.partial/' \
-    "/storage/digests/$project/$project.latest.tar" \
+  # generate checksum
+  tarfile="/storage/digests/$project/$project.latest.tar"
+  echo "generating checksum for ${tarfile}"
+  shasum -a 256 "${tarfile}" > "${tarfile}.sha256"
+  echo "generating metadata for ${tarfile}"
+  hostname > "${tarfile}.hostname"
+  echo "uploading ${project}"
+  rsync -av --stats --partial-dir='.partial' \
+    "${tarfile}" \
+    "${tarfile}.sha256" \
+    "${tarfile}.hostname" \
     'aotpub:/mcs/www.mcs.anl.gov/research/projects/waggle/downloads/datasets/'
 done
