@@ -146,6 +146,7 @@ sensor_id,sensor_name,parameter_id,parameter_name,Raw_Type_Summary (string), Raw
 0xff18,disk_used_ratio,3,rw
 0xff19,plugins,1,enabled
 0xff19,plugins,2,active
+0xff20,wagman_datetime,1,datetime
 0xfff0,status,1,has_ssh_conn
 0xfff0,status,2,has_rmq_conn
 0xfff0,status,3,has_incoming_data
